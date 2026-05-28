@@ -7,6 +7,7 @@ from io import BytesIO
 token=os.environ["TB_TOKEN"]
 
 logging.basicConfig(format='%(asctime)s - TelegramBot - %(levelname)s - %(message)s', level=logging.INFO)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logging.info("se conectó: " + str(update.message.from_user.id))
@@ -27,7 +28,7 @@ async def acercade(update: Update, context):
 async def kill(update: Update, context):
     logging.info(context.args)
     if context.args and context.args[0] == '@e':
-        await context.bot.send_animation(update.message.chat.id, "CgACAgEAAxkBAAOPZkuctzsWZVlDSNoP9PavSZmH5poAAmUCAALrx0lEVKaX7K-68Ns1BA")
+        await context.bot.send_animation(update.message.chat.id, "CgACAgEAAxkBAAICI2oYKdAqh4YkBCLifiVJZlRXy74-AAKUBwACZ_PBRLgV_qZf-9kGOwQ")
         await asyncio.sleep(6)
         await context.bot.send_message(update.message.chat.id, text="¡¡¡Ahora estan todos muertos!!!")
     else:
@@ -55,7 +56,16 @@ async def medicion(update: Update, context):
 
 async def graficos(update: Update, context):
     logging.info(update.message.text)
-    sql = f"SELECT timestamp, {update.message.text.split()[1]} FROM mediciones where id mod 2 = 0 AND timestamp >= NOW() - INTERVAL 1 DAY AND sensor_id LIKE 'sensor_1' ORDER BY timestamp"
+    sql = f"""SELECT timestamp, {update.message.text.split()[1]}
+            FROM (
+                SELECT timestamp, {update.message.text.split()[1]},
+                    ROW_NUMBER() OVER (ORDER BY id) AS rn
+                FROM mediciones
+                WHERE timestamp >= NOW() - INTERVAL 1 DAY
+                AND sensor_id LIKE 'sensor_1'
+            ) AS t
+            WHERE rn % 2 = 0
+            ORDER BY timestamp;"""
     conn = await aiomysql.connect(host=os.environ["MARIADB_SERVER"], port=3306,
                                     user=os.environ["MARIADB_USER"],
                                     password=os.environ["MARIADB_USER_PASS"],
