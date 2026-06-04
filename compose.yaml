@@ -25,7 +25,11 @@ services:
       - mariadb
   clientemqtt:
     image: clientemqtt
+    build:
+      context: ./clienteMqtt
     container_name: clientemqtt
+    extra_hosts: # PARA SOLUCIONAR PROBLEMAS DE NAT LOOPBACK EN LA RED LOCAL     
+      - "${SERVIDOR}:${IP_HOST_LOCAL}"    
     environment:
       - TZ=America/Argentina/Buenos_Aires 
       - SERVIDOR=${SERVIDOR} #Se reemplazará por la env var SERVIDOR defineda en .env
@@ -104,6 +108,8 @@ services:
     build:
       context: ./telegrambot
     container_name: telegrambot
+    extra_hosts: # PARA SOLUCIONAR PROBLEMAS DE NAT LOOPBACK EN LA RED LOCAL     
+      - "${SERVIDOR}:${IP_HOST_LOCAL}"       
     environment:
       - TZ=America/Argentina/Buenos_Aires 
       - TB_TOKEN=${TB_TOKEN}
@@ -111,8 +117,15 @@ services:
       - MARIADB_USER=${MARIADB_USER}
       - MARIADB_USER_PASS=${MARIADB_USER_PASS}
       - MARIADB_DB=${MARIADB_DB}
+      # Nuevas variables para publicar en MQTT
+      - SERVIDOR=${SERVIDOR}
+      - MQTT_USR=${MQTT_USR}
+      - MQTT_PASS=${MQTT_PASS}
+      - PUERTO_MQTTS=${PUERTO_MQTTS}
+      - DISPOSITIVO_ID=${DISPOSITIVO_ID} # Agregá el ID de tu Pico en el archivo .env
     restart: unless-stopped
     depends_on:
       - mariadb
+      - mosquitto
 volumes:
   portainer_data:
