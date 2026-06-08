@@ -29,7 +29,7 @@ services:
       context: ./clienteMqtt
     container_name: clientemqtt
     extra_hosts: # PARA SOLUCIONAR PROBLEMAS DE NAT LOOPBACK EN LA RED LOCAL     
-      - "${SERVIDOR}:${IP_HOST_LOCAL}"    
+      - "${SERVIDOR}:${IP_HOST_LOCAL}" # IMPORTANTE. AGREGAR EN EL .ENV LA IP LOCAL.
     environment:
       - TZ=America/Argentina/Buenos_Aires 
       - SERVIDOR=${SERVIDOR} #Se reemplazará por la env var SERVIDOR defineda en .env
@@ -117,12 +117,11 @@ services:
       - MARIADB_USER=${MARIADB_USER}
       - MARIADB_USER_PASS=${MARIADB_USER_PASS}
       - MARIADB_DB=${MARIADB_DB}
-      # Nuevas variables para publicar en MQTT
       - SERVIDOR=${SERVIDOR}
       - MQTT_USR=${MQTT_USR}
       - MQTT_PASS=${MQTT_PASS}
       - PUERTO_MQTTS=${PUERTO_MQTTS}
-      - DISPOSITIVO_ID=${DISPOSITIVO_ID} # Agregá el ID de tu Pico en el archivo .env
+      - DISPOSITIVO_ID=${DISPOSITIVO_ID} # Como no tenía para probar, usé uno de prueba
     restart: unless-stopped
     depends_on:
       - mariadb
